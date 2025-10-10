@@ -1,17 +1,20 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Product;
 use App\Models\Category;
 use App\Http\Requests\ProductRequest;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     public function __construct()
     {
         // index & show untuk semua user yg terautentikasi
-        $this->middleware('auth');
+        //$this->middleware('auth');
         // selain index/show, buat CRUD hanya untuk admin
-        $this->middleware('role:admin')->except(['index','show']);
+        //$this->middleware('role:admin')->except(['index','show']);
     }
 
     public function index()
@@ -22,14 +25,24 @@ class ProductController extends Controller
 
     public function create()
     {
-        $categories = Category::all();
-        return view('products.create', compact('categories'));
+        return view('master-data.product-master.create-product');
     }
 
-    public function store(ProductRequest $request)
+    public function store(Request $request)
     {
-        Product::create($request->validated());
-        return redirect()->route('products.index')->with('success','Produk berhasil ditambahkan');
+        $validatedData = $request->validate([
+            'product_name' => 'required|string|max:255',
+            'unit'        => 'required|string|max:100',
+            'type'        => 'required|string|max:100',
+            'information' => 'nullable|string',
+            'qty'         => 'required|integer|min:0',
+            'producer'    => 'required|string|max:255',
+        ]);
+
+        Product::create($validatedData);
+
+        return redirect()->route('product-create')
+                         ->with('success', 'Product created successfully.');
     }
 
     public function show(Product $product)
